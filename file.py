@@ -2,13 +2,14 @@ import os
 import streamlit as st
 from groq import Groq
 from dotenv import load_dotenv
+from typing import List, Dict, Any
 
 # Load environment variables
 load_dotenv()
 
 # Set page config
 st.set_page_config(
-    page_title="E-commerce Chatbot",
+    page_title="E-commerce Assistant",
     page_icon="🛍️",
     layout="wide"
 )
@@ -40,62 +41,86 @@ def setup_groq():
         return None
 
 # Initialize Groq client
-groq_client = setup_groq()
+groq_client_instance = setup_groq()
 
-# Initialize session state for chat messages
+# Initialize session state for chat history
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "Hello! I'm your e-commerce assistant. How can I help you today?"
+            "content": "👋 Hello! I'm your e-commerce assistant. How can I help you today?"
         }
     ]
 
-# Display chat messages
-st.title("E-commerce Assistant")
-st.write("Ask me anything about our products, orders, or services!")
-
-# Display chat messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# Chat input
-if prompt := st.chat_input("Type your message here..."):
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
+# Sidebar with instructions and settings
+with st.sidebar:
+    st.title("🛍️ E-commerce Assistant")
+    st.markdown("""
+    ### How to use:
+    1. Type your question in the chat box below
+    2. Press Enter or click Send
+    3. I'll help you with:
+       - Product recommendations
+       - Order status
+       - Return policies
+       - General e-commerce questions
+    """)
     
-    # Display user message
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    # Clear chat button
+    if st.button("🔄 Clear Chat"):
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": "👋 Hello! I'm your e-commerce assistant. How can I help you today?"
+            }
+        ]
+        st.rerun()
+
+# Main chat interface
+def main():
+    st.title("💬 E-commerce Assistant")
     
-    # Display assistant response
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
+    # Use the initialized Groq client
+    groq_client = groq_client_instance
+    
+    # Display chat messages
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+    
+    # Chat input
+    if prompt := st.chat_input("Type your message here..."):
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": prompt})
         
-        if not groq_client:
-            full_response = "Error: Groq client not initialized. Please check your API key."
-        else:
-            try:
-                # Show a loading spinner while waiting for the response
-                with st.spinner("Thinking..."):
-                    # Call Groq API with a supported model
+        # Display user message
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        
+        # Display assistant response in chat message container
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
+            
+            if not groq_client:
+                full_response = "Error: Could not connect to the AI service. Please check your API key."
+            else:
+                try:
+                    # Get response from Groq API
                     response = groq_client.chat.completions.create(
-                        model="llama3-8b-8192",  # Using a supported model
+                        model="llama3-8b-8192",
                         messages=[
                             {
                                 "role": "system",
-                                "content": """You are a helpful e-commerce assistant. Provide concise and helpful responses to 
-                                customer queries about products, orders, and general e-commerce questions.
-                                Be friendly and professional in your responses."""
-                            }
-                        ] + [
-                            {"role": m["role"], "content": m["content"]}
-                            for m in st.session_state.messages
+                                "content": """You are a helpful e-commerce assistant. Provide concise, 
+                                friendly, and helpful responses to customer queries about products, 
+                                orders, and general e-commerce questions. Be professional but approachable.
+                                """
+                            },
+                            *[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
                         ],
                         temperature=0.7,
-                        max_tokens=1000,
+                        max_tokens=1024,
                         stream=True
                     )
                     
@@ -106,34 +131,17 @@ if prompt := st.chat_input("Type your message here..."):
                             full_response += content
                             message_placeholder.markdown(full_response + "▌")
                     
-                    # Update the placeholder with the final response
+                    # Display final response
                     message_placeholder.markdown(full_response)
-                
-            except Exception as e:
-                full_response = f"Sorry, I encountered an error: {str(e)}"
-                message_placeholder.error(full_response)
-    
-    # Add assistant response to chat history
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+                    
+                except Exception as e:
+                    full_response = f"⚠️ Sorry, I encountered an error: {str(e)}"
+                    message_placeholder.error(full_response)
+        
+        # Add assistant response to chat history
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-# Add a sidebar with some information
-with st.sidebar:
-    st.header("About")
-    st.markdown("""
-    This is an AI-powered e-commerce assistant. You can ask me about:
-    - Product information
-    - Order status
-    - Return policies
-    - And any other e-commerce related questions!
-    """)
-    
-    if st.button("Clear Chat"):
-        st.session_state.messages = [
-            {
-                "role": "assistant",
-                "content": "Hello! I'm your e-commerce assistant. How can I help you today?"
-            }
-        ]
+        # Rerun to update the chat interface
         st.rerun()
 
 # Add some custom CSS for better appearance
@@ -144,11 +152,29 @@ st.markdown("""
         }
         .stChatMessage {
             padding: 1rem;
-            border-radius: 0.5rem;
+            border-radius: 0.8rem;
             margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         .stChatMessage p {
             margin: 0;
+            line-height: 1.6;
+        }
+        .stButton>button {
+            width: 100%;
+            margin-top: 0.5rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+        .stButton>button:hover {
+            background-color: #45a049;
         }
     </style>
 """, unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    main()
