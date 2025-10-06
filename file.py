@@ -108,7 +108,7 @@ def main():
                 try:
                     # Get response from Groq API
                     response = groq_client.chat.completions.create(
-                        model="llama3-8b-8192",
+                        model="mixtral-8x7b-32768",
                         messages=[
                             {
                                 "role": "system",
@@ -178,5 +178,6 @@ st.markdown("""
 
 if __name__ == "__main__":
     main()
+
 
 
