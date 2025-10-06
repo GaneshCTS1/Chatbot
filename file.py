@@ -9,8 +9,8 @@ load_dotenv()
 
 # Set page config
 st.set_page_config(
-    page_title="E-commerce Assistant",
-    page_icon="🛍️",
+    page_title="Coding Assistant",
+    page_icon="💻",
     layout="wide"
 )
 
@@ -178,4 +178,5 @@ st.markdown("""
 
 if __name__ == "__main__":
     main()
+
 
