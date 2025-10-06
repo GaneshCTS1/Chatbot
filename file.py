@@ -48,7 +48,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "👋 Hello! I'm your e-commerce assistant. How can I help you today?"
+            "content": "👋 Hello! I'm your Coding assistant. How can I help you today?"
         }
     ]
 
@@ -57,13 +57,13 @@ with st.sidebar:
     st.title("🛍️ E-commerce Assistant")
     st.markdown("""
     ### How to use:
-    1. Type your question in the chat box below
+    1. Type your coding question in the chat box below
     2. Press Enter or click Send
-    3. I'll help you with:
-       - Product recommendations
-       - Order status
-       - Return policies
-       - General e-commerce questions
+    3. I can help you with:
+       - Debugging code
+       - Writing scripts
+       - Understanding programming concepts
+       - Exploring frameworks and libraries
     """)
     
     # Clear chat button
@@ -71,7 +71,7 @@ with st.sidebar:
         st.session_state.messages = [
             {
                 "role": "assistant",
-                "content": "👋 Hello! I'm your e-commerce assistant. How can I help you today?"
+                "content": "👋 Hello! I'm your Coding assistant. How can I help you today?"
             }
         ]
         st.rerun()
@@ -112,9 +112,9 @@ def main():
                         messages=[
                             {
                                 "role": "system",
-                                "content": """You are a helpful e-commerce assistant. Provide concise, 
-                                friendly, and helpful responses to customer queries about products, 
-                                orders, and general e-commerce questions. Be professional but approachable.
+                                "content":  """You are a knowledgeable and friendly coding assistant. 
+                                Help users with programming questions, debugging, code generation, and 
+                                explanations of technical concepts. Be clear, concise, and supportive.
                                 """
                             },
                             *[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
@@ -178,3 +178,4 @@ st.markdown("""
 
 if __name__ == "__main__":
     main()
+
