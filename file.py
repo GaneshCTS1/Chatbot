@@ -17,16 +17,12 @@ st.set_page_config(
 # Initialize Groq client
 def setup_groq():
     try:
-        # Get API key
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
             st.error("Groq API key not found in .env file")
             return None
-            
-        # Create a simple HTTP client without proxy settings
+
         import httpx
-        
-        # Initialize Groq client with custom HTTP client
         client = Groq(
             api_key=api_key,
             http_client=httpx.Client(
@@ -40,7 +36,6 @@ def setup_groq():
         st.error(f"Failed to initialize Groq client: {str(e)}")
         return None
 
-# Initialize Groq client
 groq_client_instance = setup_groq()
 
 # Initialize session state for chat history
@@ -48,13 +43,13 @@ if "messages" not in st.session_state:
     st.session_state.messages = [
         {
             "role": "assistant",
-            "content": "👋 Hello! I'm your Coding assistant. How can I help you today?"
+            "content": "👋 Hello! I'm your coding assistant. What programming challenge can I help you solve today?"
         }
     ]
 
 # Sidebar with instructions and settings
 with st.sidebar:
-    st.title("🛍️ E-commerce Assistant")
+    st.title("💻 Coding Assistant")
     st.markdown("""
     ### How to use:
     1. Type your coding question in the chat box below
@@ -66,38 +61,31 @@ with st.sidebar:
        - Exploring frameworks and libraries
     """)
     
-    # Clear chat button
     if st.button("🔄 Clear Chat"):
         st.session_state.messages = [
             {
                 "role": "assistant",
-                "content": "👋 Hello! I'm your Coding assistant. How can I help you today?"
+                "content": "👋 Hello! I'm your coding assistant. What programming challenge can I help you solve today?"
             }
         ]
         st.rerun()
 
 # Main chat interface
 def main():
-    st.title("💬 E-commerce Assistant")
+    st.title("💬 Coding Assistant")
     
-    # Use the initialized Groq client
     groq_client = groq_client_instance
     
-    # Display chat messages
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
     
-    # Chat input
-    if prompt := st.chat_input("Type your message here..."):
-        # Add user message to chat history
+    if prompt := st.chat_input("Type your coding question here..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         
-        # Display user message
         with st.chat_message("user"):
             st.markdown(prompt)
         
-        # Display assistant response in chat message container
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             full_response = ""
@@ -106,13 +94,12 @@ def main():
                 full_response = "Error: Could not connect to the AI service. Please check your API key."
             else:
                 try:
-                    # Get response from Groq API
                     response = groq_client.chat.completions.create(
-                        model="mixtral-8x7b-32768",
+                        model="llama-3.3-70b-versatile",
                         messages=[
                             {
                                 "role": "system",
-                                "content":  """You are a knowledgeable and friendly coding assistant. 
+                                "content": """You are a knowledgeable and friendly coding assistant. 
                                 Help users with programming questions, debugging, code generation, and 
                                 explanations of technical concepts. Be clear, concise, and supportive.
                                 """
@@ -124,27 +111,22 @@ def main():
                         stream=True
                     )
                     
-                    # Stream the response
                     for chunk in response:
                         if chunk.choices[0].delta.content is not None:
                             content = chunk.choices[0].delta.content
                             full_response += content
                             message_placeholder.markdown(full_response + "▌")
                     
-                    # Display final response
                     message_placeholder.markdown(full_response)
                     
                 except Exception as e:
                     full_response = f"⚠️ Sorry, I encountered an error: {str(e)}"
                     message_placeholder.error(full_response)
         
-        # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": full_response})
-
-        # Rerun to update the chat interface
         st.rerun()
 
-# Add some custom CSS for better appearance
+# Custom CSS
 st.markdown("""
     <style>
         .stChatFloatingInputContainer {
@@ -163,7 +145,7 @@ st.markdown("""
         .stButton>button {
             width: 100%;
             margin-top: 0.5rem;
-            background-color: #4CAF50;
+            background-color: #2196F3;
             color: white;
             border: none;
             border-radius: 0.5rem;
@@ -171,13 +153,10 @@ st.markdown("""
             font-weight: 500;
         }
         .stButton>button:hover {
-            background-color: #45a049;
+            background-color: #1976D2;
         }
     </style>
 """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
-
-
-
